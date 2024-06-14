@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from booking_scheduler import BookingScheduler
 from schedule import Schedule, Customer
-from test_communication import TestableSmsSender
+from test_communication import TestableSmsSender, TestableMailSender
 
 NOT_ON_THE_HOUR = datetime.strptime("2021/03/26 09:05", "%Y/%m/%d %H:%M")
 ON_THE_HOUR = datetime.strptime("2021/03/26 09:00", "%Y/%m/%d %H:%M")
@@ -60,10 +60,23 @@ class BookingSchedulerTest(unittest.TestCase):
 
         self.assertTrue(self.testable_sms_sender.is_send_method_is_called())
     def test_이메일이_없는_경우에는_이메일_미발송(self):
-        pass
+        testable_mail_sender = TestableMailSender()
+        schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, CUSTOMER)
+        self.booking_scheduler.set_mail_sender(testable_mail_sender)
+
+        self.booking_scheduler.add_schedule(schedule)
+
+        self.assertEqual(testable_mail_sender.get_count_send_mail_is_called(), 0)
 
     def test_이메일이_있는_경우에는_이메일_발송(self):
-        pass
+        customer_with_mail = Customer("Fake Name", "010-1234-5678", "test@test.com")
+        testable_mail_sender = TestableMailSender()
+        schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, customer_with_mail)
+        self.booking_scheduler.set_mail_sender(testable_mail_sender)
+
+        self.booking_scheduler.add_schedule(schedule)
+
+        self.assertEqual(testable_mail_sender.get_count_send_mail_is_called(), 1)
 
     def test_현재날짜가_일요일인_경우_예약불가_예외처리(self):
         pass
